@@ -76,7 +76,8 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
             const projectGoals: ProjectSingleFieldStatuses = {};
             storedNames.forEach((projectName) => {
                 const stateGoalValue = this.state.projects[projectName].goal;
-                projectGoals[projectName] = isNaN(parseFloat(stateGoalValue)) ? '' : stateGoalValue;
+                const goalFloat = parseFloat(stateGoalValue);
+                projectGoals[projectName] = isNaN(goalFloat) || goalFloat <= 0.0 ? '' : stateGoalValue;
             });
             await updateProjectGoals(projectGoals);
             await this.updateProjectStatusesView();

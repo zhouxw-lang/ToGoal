@@ -20,6 +20,7 @@ import OpenInNewIcon from '@material-ui/icons/OpenInNew';
 import { Alert } from '@material-ui/lab';
 import TableSortLabel from '@material-ui/core/TableSortLabel';
 import { Order, TableSortRow, TableSortRowKey } from '../types';
+import { withStyles, Theme, createStyles } from '@material-ui/core/styles';
 
 import '../../styles/PopupPage.scss';
 
@@ -98,6 +99,16 @@ interface PopupPageProps {
 }
 
 const GOAL_INPUT_PREFIX = 'goalinput-';
+
+const StyledTableRow = withStyles((theme: Theme) =>
+    createStyles({
+        root: {
+            '&:nth-of-type(odd)': {
+                backgroundColor: theme.palette.action.hover,
+            },
+        },
+    })
+)(TableRow);
 
 const PopupPage = ({
     projects,
@@ -246,7 +257,7 @@ const PopupPage = ({
 
                             <TableBody>
                                 {stableSort(tableData, sortingComparator).map((row, rowIndex) => (
-                                    <TableRow hover role="checkbox" tabIndex={-1} key={rowIndex}>
+                                    <StyledTableRow hover role="checkbox" tabIndex={-1} key={rowIndex}>
                                         {headCells.map((headCell, cellIndex) => (
                                             <TableCell
                                                 key={`${rowIndex}-${cellIndex}`}
@@ -256,7 +267,7 @@ const PopupPage = ({
                                                 {row[displayRowKeys[headCell.id] as keyof TableDisplayRow]}
                                             </TableCell>
                                         ))}
-                                    </TableRow>
+                                    </StyledTableRow>
                                 ))}
                             </TableBody>
                         </Table>

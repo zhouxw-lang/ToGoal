@@ -5,6 +5,10 @@ ToGoal, a Chrome extension working together with Toggl Track for setting time-ba
 
 This project is licensed under the terms of the [MIT license](https://opensource.org/licenses/MIT).
 
+## Published version
+
+https://chrome.google.com/webstore/detail/togoal/ebmmaadhpbmbiihfefgckjacpiiegoel
+
 ## Author
 
 Akira Suto (Xiaowei Zhou)

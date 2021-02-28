@@ -87,6 +87,7 @@ const displayRowKeys = {
 
 interface PopupPageProps {
     projects: ProjectStatuses;
+    projectInputtedGoals: Record<string, string>;
     onlyShowPrjWithGoals: boolean;
     msgVisible: boolean;
     msgContent: string;
@@ -97,8 +98,8 @@ interface PopupPageProps {
     trackingPeriodEnd: Date;
     handleUpdateRecordedTimes: () => Promise<void>;
     handleGoalInputChange: (event: React.ChangeEvent<HTMLInputElement>, namePrefix: string) => void;
+    handleGoalInputBlur: (event: React.ChangeEvent<HTMLInputElement>, namePrefix: string) => void;
     handleSaveGoals: () => Promise<void>;
-    handleUpdateProjects: () => Promise<void>;
     handleOpenInNewTab: () => void;
     handleRequestSort: (event: React.MouseEvent<unknown>, property: TableSortRowKey) => void;
     handleOnlyShowPrjWithGoalsChange: (event: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
@@ -119,6 +120,7 @@ const StyledTableRow = withStyles((theme: Theme) =>
 
 const PopupPage = ({
     projects,
+    projectInputtedGoals,
     onlyShowPrjWithGoals,
     msgVisible,
     msgContent,
@@ -129,8 +131,8 @@ const PopupPage = ({
     trackingPeriodEnd,
     handleUpdateRecordedTimes,
     handleGoalInputChange,
+    handleGoalInputBlur,
     handleSaveGoals,
-    handleUpdateProjects,
     handleOpenInNewTab,
     handleRequestSort,
     handleOnlyShowPrjWithGoalsChange,
@@ -165,6 +167,15 @@ const PopupPage = ({
                 remainingTime = goal - recordedTime;
             }
 
+            let displayGoalValue;
+            if (projectInputtedGoals.hasOwnProperty(projectName)) {
+                displayGoalValue = projectInputtedGoals[projectName];
+            } else if (projectObj.hasOwnProperty(GOAL_KEY)) {
+                displayGoalValue = projectObj[GOAL_KEY];
+            } else {
+                displayGoalValue = '';
+            }
+
             return {
                 project: projectName,
                 goal,
@@ -174,8 +185,9 @@ const PopupPage = ({
                         className="togoal-GoalInput"
                         id={`${GOAL_INPUT_PREFIX}${projectName}`}
                         name={`${GOAL_INPUT_PREFIX}${projectName}`}
-                        value={projectObj[GOAL_KEY] ? projectObj[GOAL_KEY] : ''}
+                        value={displayGoalValue}
                         onChange={(event) => handleGoalInputChange(event, GOAL_INPUT_PREFIX)}
+                        onBlur={(event) => handleGoalInputBlur(event, GOAL_INPUT_PREFIX)}
                     />
                 ),
                 recordedTime,
@@ -202,7 +214,7 @@ const PopupPage = ({
                     startIcon={<TimelapseIcon />}
                     className="togoal-MenuButton"
                 >
-                    Update recorded times
+                    Pull updates from Toggl Track
                 </Button>
                 <Button
                     variant="contained"
@@ -214,15 +226,6 @@ const PopupPage = ({
                     className="togoal-MenuButton"
                 >
                     Save goals
-                </Button>
-                <Button
-                    variant="outlined"
-                    disableElevation
-                    size="small"
-                    onClick={handleUpdateProjects}
-                    className="togoal-MenuButton"
-                >
-                    Update projects
                 </Button>
                 <Button
                     color="primary"
@@ -289,7 +292,7 @@ const PopupPage = ({
                 </Paper>
             </div>
 
-            <FormControl component="fieldset">
+            <FormControl component="fieldset" fullWidth>
                 <FormLabel component="legend">Tracking period type: </FormLabel>
                 <RadioGroup
                     row

@@ -20,24 +20,6 @@ const defaultCustomizations: Customizations = {
     trackingPeriodType: 'weekly',
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const sample_donotuse = {
-    toGoalModel: {
-        project1: {
-            goal: 550,
-            recordedTime: 210,
-        },
-        project2: {
-            goal: 550,
-            recordedTime: 210,
-        },
-    },
-    options: {
-        apiToken: 'aaaaaaaaaaaaaaaaaaaaaaaaaa',
-        workspaceId: 123456,
-    },
-};
-
 const storage = chrome.storage.sync;
 
 export async function loadOptions(): Promise<Options> {

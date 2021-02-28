@@ -15,6 +15,7 @@ import { FIRST_DAY_OF_WEEK_KEY, loadOptions } from '../storage';
 
 interface State extends Customizations {
     projects: ProjectStatuses;
+    projectInputtedGoals: Record<string, string>;
     msgVisible: boolean;
     msgContent: string;
     trackingPeriodStart: Date;
@@ -27,6 +28,7 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
 
         this.state = {
             projects: {},
+            projectInputtedGoals: {},
             onlyShowPrjWithGoals: false,
             msgVisible: false,
             msgContent: '',
@@ -54,26 +56,13 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
         });
     };
 
-    private handleUpdateRecordedTimes = async (silent = false) => {
+    private handleUpdateRecordedTimes = async (silent: boolean) => {
         try {
-            const [recordedTimes, storedNames] = await Promise.all([
-                retrieveRecordedTimes(
-                    this.state.trackingPeriodStart.toISOString().slice(0, 10),
-                    this.state.trackingPeriodEnd.toISOString().slice(0, 10)
-                ),
-                Storage.getProjectNames(),
-            ]);
-            const projectRecordedTimes: ProjectSingleFieldStatuses = {};
-            for (const [projectName, hours] of Object.entries(recordedTimes)) {
-                if (!storedNames.includes(projectName)) {
-                    return Promise.reject(`Found nonexistent project: ${projectName}. Please update projects first.`);
-                }
-                projectRecordedTimes[projectName] = hours;
-            }
-            await Storage.updateProjectRecordedTimes(projectRecordedTimes);
+            await this.innerUpdateProjects();
+            await this.innerUpdateRecordedTimes();
             await this.updateProjectStatusesView();
             if (!silent) {
-                this.showSuccessMessage('Recorded times updated from Toggl Track!');
+                this.showSuccessMessage('Updates pulled from Toggl Track!');
             }
         } catch (e) {
             if (!silent) {
@@ -82,43 +71,61 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
         }
     };
 
-    private handleSaveGoals = async () => {
+    private innerUpdateRecordedTimes = async () => {
+        const [recordedTimes, storedNames] = await Promise.all([
+            retrieveRecordedTimes(
+                this.state.trackingPeriodStart.toISOString().slice(0, 10),
+                this.state.trackingPeriodEnd.toISOString().slice(0, 10)
+            ),
+            Storage.getProjectNames(),
+        ]);
+        const projectRecordedTimes: ProjectSingleFieldStatuses = {};
+        for (const [projectName, hours] of Object.entries(recordedTimes)) {
+            if (storedNames.includes(projectName)) {
+                projectRecordedTimes[projectName] = hours;
+            }
+        }
+        await Storage.updateProjectRecordedTimes(projectRecordedTimes);
+    };
+
+    private async innerUpdateProjects() {
+        const [currNames, storedNames] = await Promise.all([retrieveProjects(), Storage.getProjectNames()]);
+
+        const newNames = currNames.filter((name) => !storedNames.includes(name));
+
+        let removeUnused = false;
+        const unusedNames = storedNames.filter((name) => !currNames.includes(name));
+        if (unusedNames.length !== 0) {
+            const msg = 'The following projects are unused, do you want to remove them?\n\n' + unusedNames.join('\n');
+            if (confirm(msg)) {
+                removeUnused = true;
+            }
+        }
+        await Storage.addProjects(newNames, removeUnused, unusedNames);
+    }
+
+    private handleSaveGoals = async (silent: boolean) => {
+        return await this.innerHandleSaveGoals(silent, this.state.projects);
+    };
+
+    private innerHandleSaveGoals = async (silent: boolean, projects: ProjectStatuses) => {
         try {
             const storedNames = await Storage.getProjectNames();
             const projectGoals: ProjectSingleFieldStatuses = {};
             storedNames.forEach((projectName) => {
-                const stateGoalValue = this.state.projects[projectName].goal;
+                const stateGoalValue = projects[projectName].goal;
                 const goalFloat = parseFloat(stateGoalValue);
                 projectGoals[projectName] = isNaN(goalFloat) || goalFloat <= 0.0 ? '' : stateGoalValue;
             });
             await Storage.updateProjectGoals(projectGoals);
             await this.updateProjectStatusesView();
-            this.showSuccessMessage('Goals saved!');
-        } catch (e) {
-            alert(e);
-        }
-    };
-
-    private handleUpdateProjects = async () => {
-        try {
-            const [currNames, storedNames] = await Promise.all([retrieveProjects(), Storage.getProjectNames()]);
-
-            const newNames = currNames.filter((name) => !storedNames.includes(name));
-
-            let removeUnused = false;
-            const unusedNames = storedNames.filter((name) => !currNames.includes(name));
-            if (unusedNames.length !== 0) {
-                const msg =
-                    'The following projects are unused, do you want to remove them?\n\n' + unusedNames.join('\n');
-                if (confirm(msg)) {
-                    removeUnused = true;
-                }
+            if (!silent) {
+                this.showSuccessMessage('Goals saved!');
             }
-            await Storage.addProjects(newNames, removeUnused, unusedNames);
-            await this.updateProjectStatusesView();
-            this.showSuccessMessage('Projects updated from Toggl Track!');
         } catch (e) {
-            alert(e);
+            if (!silent) {
+                alert(e);
+            }
         }
     };
 
@@ -148,10 +155,23 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
     private handleGoalInputChange = (event: React.ChangeEvent<HTMLInputElement>, namePrefix: string) => {
         if (event.target.name.startsWith(namePrefix)) {
             const projectName = event.target.name.substring(namePrefix.length);
-            const projects = { ...this.state.projects };
-            projects[projectName].goal = event.target.value;
-            this.setState({ projects: projects });
+            const projectInputtedGoals = { ...this.state.projectInputtedGoals };
+            projectInputtedGoals[projectName] = event.target.value;
+            this.setState({ projectInputtedGoals });
         }
+    };
+
+    private handleGoalInputBlur = async () => {
+        const projects = { ...this.state.projects };
+        const projectInputtedGoals = this.state.projectInputtedGoals;
+        Object.keys(projectInputtedGoals).forEach((projectName) => {
+            if (projects.hasOwnProperty(projectName)) {
+                projects[projectName].goal = projectInputtedGoals[projectName];
+            }
+        });
+
+        await this.innerHandleSaveGoals(true, projects);
+        this.setState({ projectInputtedGoals: {} });
     };
 
     private setStateTrackingPeriodType = async (trackingPeriodType: TrackingPeriodType): Promise<void> => {
@@ -221,6 +241,7 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
         return (
             <PopupPage
                 projects={this.state.projects}
+                projectInputtedGoals={this.state.projectInputtedGoals}
                 onlyShowPrjWithGoals={this.state.onlyShowPrjWithGoals}
                 msgVisible={this.state.msgVisible}
                 msgContent={this.state.msgContent}
@@ -231,8 +252,8 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
                 trackingPeriodEnd={this.state.trackingPeriodEnd}
                 handleUpdateRecordedTimes={() => this.handleUpdateRecordedTimes(false)}
                 handleGoalInputChange={this.handleGoalInputChange}
-                handleSaveGoals={this.handleSaveGoals}
-                handleUpdateProjects={this.handleUpdateProjects}
+                handleGoalInputBlur={this.handleGoalInputBlur}
+                handleSaveGoals={() => this.handleSaveGoals(false)}
                 handleOpenInNewTab={PopupPageContainer.handleOpenInNewTab}
                 handleRequestSort={this.handleRequestSort}
                 handleOnlyShowPrjWithGoalsChange={this.handleOnlyShowPrjWithGoalsChange}

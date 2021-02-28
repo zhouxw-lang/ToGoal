@@ -226,7 +226,7 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
                 trackingPeriodType={this.state.trackingPeriodType}
                 trackingPeriodStart={this.state.trackingPeriodStart}
                 trackingPeriodEnd={this.state.trackingPeriodEnd}
-                handleUpdateRecordedTimes={this.handleUpdateRecordedTimes}
+                handleUpdateRecordedTimes={() => this.handleUpdateRecordedTimes(false)}
                 handleGoalInputChange={this.handleGoalInputChange}
                 handleSaveGoals={this.handleSaveGoals}
                 handleUpdateProjects={this.handleUpdateProjects}

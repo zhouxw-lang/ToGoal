@@ -24,6 +24,9 @@ export async function retrieveProjects(): Promise<string[]> {
     }
 
     const json = (await response.json()) as Array<Record<string, unknown>>;
+    if (!json) {
+        return [];
+    }
     try {
         return json.map((elem: { name: string }) => elem.name);
     } catch (e) {

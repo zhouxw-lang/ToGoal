@@ -111,7 +111,7 @@ export default class OptionsPage extends React.Component<Readonly<Record<string,
                 <a target="_blank" href="https://support.toggl.com/en/articles/3116844-where-is-my-api-token-located">
                     Where is my API Token located?
                 </a>
-                <h5>How to find workspace ID:</h5>
+                <h5>How to find workspace ID</h5>
                 <p>
                     Go to{' '}
                     <a target="_blank" href="https://track.toggl.com/projects">

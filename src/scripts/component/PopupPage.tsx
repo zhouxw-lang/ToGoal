@@ -89,6 +89,7 @@ interface PopupPageProps {
     projects: ProjectStatuses;
     onlyShowPrjWithGoals: boolean;
     msgVisible: boolean;
+    msgContent: string;
     order: Order;
     orderBy: TableSortRowKey;
     trackingPeriodType: TrackingPeriodType;
@@ -120,6 +121,7 @@ const PopupPage = ({
     projects,
     onlyShowPrjWithGoals,
     msgVisible,
+    msgContent,
     order,
     orderBy,
     trackingPeriodType,
@@ -234,7 +236,7 @@ const PopupPage = ({
             </div>
             {msgVisible && (
                 <Alert severity="success" className="togoal-AlertBar">
-                    Done.
+                    {msgContent}
                 </Alert>
             )}
 
@@ -298,7 +300,12 @@ const PopupPage = ({
                     <FormControlLabel value="daily" control={<Radio color="primary" />} label="Daily" />
                     <FormControlLabel value="weekly" control={<Radio color="primary" />} label="Weekly" />
                     <FormControlLabel value="monthly" control={<Radio color="primary" />} label="Monthly" />
-                    <FormControlLabel value="custom" control={<Radio color="primary" />} label="Custom (to come)" />
+                    <FormControlLabel
+                        value="custom"
+                        control={<Radio color="primary" />}
+                        label="Custom (to come)"
+                        disabled
+                    />
                 </RadioGroup>
             </FormControl>
 

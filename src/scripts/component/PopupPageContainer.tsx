@@ -16,6 +16,7 @@ import { FIRST_DAY_OF_WEEK_KEY, loadOptions } from '../storage';
 interface State extends Customizations {
     projects: ProjectStatuses;
     msgVisible: boolean;
+    msgContent: string;
     trackingPeriodStart: Date;
     trackingPeriodEnd: Date;
 }
@@ -28,6 +29,7 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
             projects: {},
             onlyShowPrjWithGoals: false,
             msgVisible: false,
+            msgContent: '',
             order: 'asc',
             orderBy: 'project',
             trackingPeriodType: 'weekly',
@@ -71,7 +73,7 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
             await Storage.updateProjectRecordedTimes(projectRecordedTimes);
             await this.updateProjectStatusesView();
             if (!silent) {
-                this.showSuccessMessage();
+                this.showSuccessMessage('Recorded times updated from Toggl Track!');
             }
         } catch (e) {
             if (!silent) {
@@ -91,7 +93,7 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
             });
             await Storage.updateProjectGoals(projectGoals);
             await this.updateProjectStatusesView();
-            this.showSuccessMessage();
+            this.showSuccessMessage('Goals saved!');
         } catch (e) {
             alert(e);
         }
@@ -114,7 +116,7 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
             }
             await Storage.addProjects(newNames, removeUnused, unusedNames);
             await this.updateProjectStatusesView();
-            this.showSuccessMessage();
+            this.showSuccessMessage('Projects updated from Toggl Track!');
         } catch (e) {
             alert(e);
         }
@@ -192,11 +194,11 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
         });
     };
 
-    private showSuccessMessage = () => {
-        this.setState({ msgVisible: true }, () => {
+    private showSuccessMessage = (msgContent: string) => {
+        this.setState({ msgVisible: true, msgContent }, () => {
             setTimeout(() => {
                 this.setState({ msgVisible: false });
-            }, 750);
+            }, 1500);
         });
     };
 
@@ -221,6 +223,7 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
                 projects={this.state.projects}
                 onlyShowPrjWithGoals={this.state.onlyShowPrjWithGoals}
                 msgVisible={this.state.msgVisible}
+                msgContent={this.state.msgContent}
                 order={this.state.order}
                 orderBy={this.state.orderBy}
                 trackingPeriodType={this.state.trackingPeriodType}

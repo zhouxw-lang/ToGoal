@@ -1,10 +1,11 @@
 import * as React from 'react';
 
-import { API_TOKEN_KEY, FIRST_DAY_OF_WEEK_KEY, loadOptions, Options, storeOptions, WORKSPACE_ID_KEY } from '../storage';
+import { API_TOKEN_KEY, FIRST_DAY_OF_WEEK_KEY, loadOptions, storeOptions, WORKSPACE_ID_KEY } from '../storage';
 
 import { Button, Container, FormControl, InputLabel, MenuItem, Select, TextField } from '@material-ui/core';
 // @ts-ignore
 import { Alert } from '@material-ui/lab';
+import { Options } from '../types';
 
 interface State {
     options: Options;

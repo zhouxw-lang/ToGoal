@@ -1,4 +1,4 @@
-import { Order, TableSortRowKey } from './types';
+import { Customizations, Options, ProjectSingleFieldStatuses, ProjectStatuses, ProjectStatusKey } from './types';
 
 const MODEL_ROOT_KEY = 'toGoalModel';
 
@@ -13,39 +13,11 @@ export const FIRST_DAY_OF_WEEK_KEY = 'firstDayOfWeek';
 
 const CUSTOMIZATIONS_ROOT_KEY = 'customizations';
 
-export interface Options {
-    [API_TOKEN_KEY]: string;
-    [WORKSPACE_ID_KEY]: string;
-    [FIRST_DAY_OF_WEEK_KEY]: string;
-}
-
-export type OptionsKey = keyof Options;
-
-interface ProjectStatus {
-    [GOAL_KEY]?: string;
-    [RECORDED_TIME_KEY]?: string;
-}
-
-type ProjectStatusKey = keyof ProjectStatus;
-
-export interface ProjectStatuses {
-    [projectName: string]: ProjectStatus;
-}
-
-export interface ProjectSingleFieldStatuses {
-    [projectName: string]: string;
-}
-
-export interface Customizations {
-    onlyShowPrjWithGoals: boolean;
-    order: Order;
-    orderBy: TableSortRowKey;
-}
-
 const defaultCustomizations: Customizations = {
     onlyShowPrjWithGoals: false,
     order: 'asc',
     orderBy: 'project',
+    trackingPeriodType: 'weekly',
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

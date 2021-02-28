@@ -1,26 +1,23 @@
 import * as React from 'react';
+import * as Storage from '../storage';
 import {
-    addProjects,
-    getProjectNames,
-    getProjectStatuses,
-    loadCustomizations,
+    Customizations,
+    Order,
     ProjectSingleFieldStatuses,
     ProjectStatuses,
-    storeCustomizations,
-    updateProjectGoals,
-    updateProjectRecordedTimes,
-} from '../storage';
-import { Order, TableSortRowKey } from '../types';
+    TableSortRowKey,
+    TrackingPeriodType,
+} from '../types';
 import { retrieveProjects, retrieveRecordedTimes } from '../togglTrackApi';
-import { RefObject } from 'react';
 import PopupPage from './PopupPage';
+import { getWeeklySinceUntilDates } from '../utils';
+import { FIRST_DAY_OF_WEEK_KEY, loadOptions } from '../storage';
 
-interface State {
+interface State extends Customizations {
     projects: ProjectStatuses;
-    onlyShowPrjWithGoals: boolean;
     msgVisible: boolean;
-    order: Order;
-    orderBy: TableSortRowKey;
+    trackingPeriodStart: Date;
+    trackingPeriodEnd: Date;
 }
 
 class PopupPageContainer extends React.Component<Readonly<Record<string, never>>, State> {
@@ -33,6 +30,9 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
             msgVisible: false,
             order: 'asc',
             orderBy: 'project',
+            trackingPeriodType: 'weekly',
+            trackingPeriodStart: new Date(),
+            trackingPeriodEnd: new Date(),
         } as State;
     }
 
@@ -46,15 +46,21 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
             };
 
             // persist to Chrome storage
-            void storeCustomizations(newPartialState);
+            void Storage.storeCustomizations(newPartialState);
 
             return newPartialState;
         });
     };
 
-    private handleUpdateRecordedTimes = async () => {
+    private handleUpdateRecordedTimes = async (silent = false) => {
         try {
-            const [recordedTimes, storedNames] = await Promise.all([retrieveRecordedTimes(), getProjectNames()]);
+            const [recordedTimes, storedNames] = await Promise.all([
+                retrieveRecordedTimes(
+                    this.state.trackingPeriodStart.toISOString().slice(0, 10),
+                    this.state.trackingPeriodEnd.toISOString().slice(0, 10)
+                ),
+                Storage.getProjectNames(),
+            ]);
             const projectRecordedTimes: ProjectSingleFieldStatuses = {};
             for (const [projectName, hours] of Object.entries(recordedTimes)) {
                 if (!storedNames.includes(projectName)) {
@@ -62,24 +68,28 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
                 }
                 projectRecordedTimes[projectName] = hours;
             }
-            await updateProjectRecordedTimes(projectRecordedTimes);
+            await Storage.updateProjectRecordedTimes(projectRecordedTimes);
             await this.updateProjectStatusesView();
-            this.showSuccessMessage();
+            if (!silent) {
+                this.showSuccessMessage();
+            }
         } catch (e) {
-            alert(e);
+            if (!silent) {
+                alert(e);
+            }
         }
     };
 
     private handleSaveGoals = async () => {
         try {
-            const storedNames = await getProjectNames();
+            const storedNames = await Storage.getProjectNames();
             const projectGoals: ProjectSingleFieldStatuses = {};
             storedNames.forEach((projectName) => {
                 const stateGoalValue = this.state.projects[projectName].goal;
                 const goalFloat = parseFloat(stateGoalValue);
                 projectGoals[projectName] = isNaN(goalFloat) || goalFloat <= 0.0 ? '' : stateGoalValue;
             });
-            await updateProjectGoals(projectGoals);
+            await Storage.updateProjectGoals(projectGoals);
             await this.updateProjectStatusesView();
             this.showSuccessMessage();
         } catch (e) {
@@ -89,7 +99,7 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
 
     private handleUpdateProjects = async () => {
         try {
-            const [currNames, storedNames] = await Promise.all([retrieveProjects(), getProjectNames()]);
+            const [currNames, storedNames] = await Promise.all([retrieveProjects(), Storage.getProjectNames()]);
 
             const newNames = currNames.filter((name) => !storedNames.includes(name));
 
@@ -102,7 +112,7 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
                     removeUnused = true;
                 }
             }
-            await addProjects(newNames, removeUnused, unusedNames);
+            await Storage.addProjects(newNames, removeUnused, unusedNames);
             await this.updateProjectStatusesView();
             this.showSuccessMessage();
         } catch (e) {
@@ -114,12 +124,23 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
         chrome.tabs.create({ url: chrome.runtime.getURL('popup.html') });
     };
 
-    private handleOnlyShowPrjWithGoalsChange = async (onlyShowPrjWithGoalsCheckbox: RefObject<HTMLInputElement>) => {
-        const currValue = onlyShowPrjWithGoalsCheckbox.current.checked;
-        this.setState({ onlyShowPrjWithGoals: currValue });
+    private handleOnlyShowPrjWithGoalsChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const newValue = event.target.checked;
+        this.setState({ onlyShowPrjWithGoals: newValue });
 
         // persist to Chrome storage
-        await storeCustomizations({ onlyShowPrjWithGoals: currValue });
+        await Storage.storeCustomizations({ onlyShowPrjWithGoals: newValue });
+    };
+
+    private handleTrackingPeriodTypeChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const newValue = event.target.value as TrackingPeriodType;
+        await this.setStateTrackingPeriodType(newValue);
+
+        // persist to Chrome storage
+        await Storage.storeCustomizations({ trackingPeriodType: newValue });
+
+        await this.setStateTrackingPeriodDates();
+        await this.handleUpdateRecordedTimes(true);
     };
 
     private handleGoalInputChange = (event: React.ChangeEvent<HTMLInputElement>, namePrefix: string) => {
@@ -131,9 +152,38 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
         }
     };
 
-    private updateProjectStatusesView = async () => {
-        const projects = await getProjectStatuses();
-        this.setState({ projects: projects });
+    private setStateTrackingPeriodType = async (trackingPeriodType: TrackingPeriodType): Promise<void> => {
+        return new Promise((resolve) => {
+            this.setState({ trackingPeriodType }, () => resolve());
+        });
+    };
+
+    private setStateTrackingPeriodDates = async (): Promise<void> => {
+        let trackingPeriodStart: Date;
+        let trackingPeriodEnd: Date;
+        if (this.state.trackingPeriodType === 'weekly') {
+            const options = await loadOptions();
+            if (!options.hasOwnProperty(FIRST_DAY_OF_WEEK_KEY)) {
+                throw new Error('API Token or workspace ID is empty. Please set them in options.');
+            }
+
+            [trackingPeriodStart, trackingPeriodEnd] = getWeeklySinceUntilDates(options[FIRST_DAY_OF_WEEK_KEY]);
+        } else {
+            // TODO
+            trackingPeriodStart = new Date();
+            trackingPeriodEnd = new Date();
+        }
+
+        return new Promise((resolve) => {
+            this.setState({ trackingPeriodStart, trackingPeriodEnd }, () => resolve());
+        });
+    };
+
+    private updateProjectStatusesView = async (): Promise<void> => {
+        const projects = await Storage.getProjectStatuses();
+        return new Promise((resolve) => {
+            this.setState({ projects: projects }, () => resolve());
+        });
     };
 
     private showSuccessMessage = () => {
@@ -145,14 +195,19 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
     };
 
     async componentDidMount(): Promise<void> {
-        const customizations = await loadCustomizations();
-        this.setState({
-            onlyShowPrjWithGoals: customizations.onlyShowPrjWithGoals,
-            order: customizations.order,
-            orderBy: customizations.orderBy,
-        });
+        await this.setStateCustomizations();
+        await this.setStateTrackingPeriodDates();
+
         await this.updateProjectStatusesView();
+        await this.handleUpdateRecordedTimes(true);
     }
+
+    private setStateCustomizations = async (): Promise<void> => {
+        const customizations = await Storage.loadCustomizations();
+        return new Promise((resolve) => {
+            this.setState(customizations, () => resolve());
+        });
+    };
 
     render(): JSX.Element {
         return (
@@ -162,6 +217,9 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
                 msgVisible={this.state.msgVisible}
                 order={this.state.order}
                 orderBy={this.state.orderBy}
+                trackingPeriodType={this.state.trackingPeriodType}
+                trackingPeriodStart={this.state.trackingPeriodStart}
+                trackingPeriodEnd={this.state.trackingPeriodEnd}
                 handleUpdateRecordedTimes={this.handleUpdateRecordedTimes}
                 handleGoalInputChange={this.handleGoalInputChange}
                 handleSaveGoals={this.handleSaveGoals}
@@ -169,6 +227,7 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
                 handleOpenInNewTab={PopupPageContainer.handleOpenInNewTab}
                 handleRequestSort={this.handleRequestSort}
                 handleOnlyShowPrjWithGoalsChange={this.handleOnlyShowPrjWithGoalsChange}
+                handleTrackingPeriodTypeChange={this.handleTrackingPeriodTypeChange}
             />
         );
     }

@@ -1,12 +1,16 @@
 import * as React from 'react';
 
-import { GOAL_KEY, ProjectStatuses, RECORDED_TIME_KEY } from '../storage';
+import { GOAL_KEY, RECORDED_TIME_KEY } from '../storage';
 import {
     Button,
     Checkbox,
     Container,
+    FormControl,
     FormControlLabel,
+    FormLabel,
     Paper,
+    Radio,
+    RadioGroup,
     Table,
     TableBody,
     TableCell,
@@ -19,7 +23,7 @@ import SaveIcon from '@material-ui/icons/Save';
 import OpenInNewIcon from '@material-ui/icons/OpenInNew';
 import { Alert } from '@material-ui/lab';
 import TableSortLabel from '@material-ui/core/TableSortLabel';
-import { Order, TableSortRow, TableSortRowKey } from '../types';
+import { Order, ProjectStatuses, TableSortRow, TableSortRowKey, TrackingPeriodType } from '../types';
 import { withStyles, Theme, createStyles } from '@material-ui/core/styles';
 
 import '../../styles/PopupPage.scss';
@@ -87,15 +91,17 @@ interface PopupPageProps {
     msgVisible: boolean;
     order: Order;
     orderBy: TableSortRowKey;
+    trackingPeriodType: TrackingPeriodType;
+    trackingPeriodStart: Date;
+    trackingPeriodEnd: Date;
     handleUpdateRecordedTimes: () => Promise<void>;
     handleGoalInputChange: (event: React.ChangeEvent<HTMLInputElement>, namePrefix: string) => void;
     handleSaveGoals: () => Promise<void>;
     handleUpdateProjects: () => Promise<void>;
     handleOpenInNewTab: () => void;
     handleRequestSort: (event: React.MouseEvent<unknown>, property: TableSortRowKey) => void;
-    handleOnlyShowPrjWithGoalsChange: (
-        onlyShowPrjWithGoalsCheckbox: React.RefObject<HTMLInputElement>
-    ) => Promise<void>;
+    handleOnlyShowPrjWithGoalsChange: (event: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
+    handleTrackingPeriodTypeChange: (event: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
 }
 
 const GOAL_INPUT_PREFIX = 'goalinput-';
@@ -116,6 +122,9 @@ const PopupPage = ({
     msgVisible,
     order,
     orderBy,
+    trackingPeriodType,
+    trackingPeriodStart,
+    trackingPeriodEnd,
     handleUpdateRecordedTimes,
     handleGoalInputChange,
     handleSaveGoals,
@@ -123,9 +132,8 @@ const PopupPage = ({
     handleOpenInNewTab,
     handleRequestSort,
     handleOnlyShowPrjWithGoalsChange,
+    handleTrackingPeriodTypeChange,
 }: PopupPageProps): JSX.Element => {
-    const onlyShowPrjWithGoalsCheckbox = React.createRef<HTMLInputElement>();
-
     const tableData: TableDataRow[] = Object.keys(projects)
         .map((projectName) => {
             const projectObj = projects[projectName];
@@ -230,6 +238,10 @@ const PopupPage = ({
                 </Alert>
             )}
 
+            <div className="togoal-TrackingPeriod">
+                Trcking period: {trackingPeriodStart.toLocaleDateString()} ~ {trackingPeriodEnd.toLocaleDateString()}
+            </div>
+
             <div className="togoal-ProjectStatusesView">
                 <Paper>
                     <TableContainer>
@@ -275,12 +287,24 @@ const PopupPage = ({
                 </Paper>
             </div>
 
+            <FormControl component="fieldset">
+                <FormLabel component="legend">Tracking period type: </FormLabel>
+                <RadioGroup
+                    row
+                    name="trackingPeriodType"
+                    value={trackingPeriodType}
+                    onChange={handleTrackingPeriodTypeChange}
+                >
+                    <FormControlLabel value="weekly" control={<Radio color="primary" />} label="Weekly" />
+                    <FormControlLabel value="custom" control={<Radio color="primary" />} label="Custom" />
+                </RadioGroup>
+            </FormControl>
+
             <FormControlLabel
                 control={
                     <Checkbox
-                        inputRef={onlyShowPrjWithGoalsCheckbox}
                         checked={onlyShowPrjWithGoals}
-                        onChange={() => handleOnlyShowPrjWithGoalsChange(onlyShowPrjWithGoalsCheckbox)}
+                        onChange={handleOnlyShowPrjWithGoalsChange}
                         color="primary"
                     />
                 }

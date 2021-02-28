@@ -1,10 +1,5 @@
-import {
-    API_TOKEN_KEY,
-    FIRST_DAY_OF_WEEK_KEY,
-    loadOptions,
-    ProjectSingleFieldStatuses,
-    WORKSPACE_ID_KEY,
-} from './storage';
+import { API_TOKEN_KEY, FIRST_DAY_OF_WEEK_KEY, loadOptions, WORKSPACE_ID_KEY } from './storage';
+import { ProjectSingleFieldStatuses } from './types';
 
 export async function retrieveProjects(): Promise<string[]> {
     const options = await loadOptions();
@@ -36,14 +31,10 @@ export async function retrieveProjects(): Promise<string[]> {
     }
 }
 
-function getSinceDateStr(firstDayOfWeek: string) {
-    const dt = new Date();
-    const lessDays = (dt.getDay() - parseInt(firstDayOfWeek) + 7) % 7;
-    const sinceDate = new Date(new Date(dt).setDate(dt.getDate() - lessDays));
-    return sinceDate.toISOString().slice(0, 10);
-}
-
-export async function retrieveRecordedTimes(): Promise<ProjectSingleFieldStatuses> {
+export async function retrieveRecordedTimes(
+    sinceDateISOStr: string,
+    untilDateISOStr: string
+): Promise<ProjectSingleFieldStatuses> {
     const options = await loadOptions();
     if (
         !options.hasOwnProperty(API_TOKEN_KEY) ||
@@ -52,12 +43,11 @@ export async function retrieveRecordedTimes(): Promise<ProjectSingleFieldStatuse
     ) {
         throw new Error('API Token, workspace ID or first day of the week is empty. Please set them in options.');
     }
-    const sinceDateStr = getSinceDateStr(options[FIRST_DAY_OF_WEEK_KEY]);
 
     let response;
     try {
         response = await fetch(
-            `https://api.track.toggl.com/reports/api/v2/weekly?user_agent=ToGoal&workspace_id=${options[WORKSPACE_ID_KEY]}&since=${sinceDateStr}`,
+            `https://api.track.toggl.com/reports/api/v2/summary?user_agent=ToGoal&workspace_id=${options[WORKSPACE_ID_KEY]}&since=${sinceDateISOStr}&until=${untilDateISOStr}`,
             {
                 method: 'GET',
                 headers: {
@@ -77,10 +67,10 @@ export async function retrieveRecordedTimes(): Promise<ProjectSingleFieldStatuse
     try {
         const dataArr = json.data;
         return dataArr.reduce(
-            (result: ProjectSingleFieldStatuses, dataObj: { title: { project: string }; totals: number[] }) => {
+            (result: ProjectSingleFieldStatuses, dataObj: { title: { project: string }; time: number }) => {
                 if (dataObj.title.project) {
                     // ignore time recordings without project
-                    result[dataObj.title.project] = (dataObj.totals[7] / 3600000.0).toFixed(2); // time in hours
+                    result[dataObj.title.project] = (dataObj.time / 3600000.0).toFixed(2); // time in hours
                 }
                 return result;
             },

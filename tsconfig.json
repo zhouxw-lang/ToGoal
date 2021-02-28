@@ -1,15 +1,19 @@
 {
-    "compilerOptions": {
-        "sourceMap": true,
-        "noImplicitAny": true,
-        "module": "es6",
-        "target": "es2019",
-        "jsx": "react",
-        "moduleResolution": "node",
-        "lib": ["dom",  "es2019"],
-        "baseUrl": "./src"
-    },
-    "exclude": [
-        "node_modules"
-    ]
+  "compilerOptions": {
+    "sourceMap": true,
+    "noImplicitAny": true,
+    "module": "es6",
+    "target": "es2019",
+    "jsx": "react",
+    "moduleResolution": "node",
+    "lib": [
+      "dom",
+      "es2019"
+    ],
+    "baseUrl": "./src",
+    "allowSyntheticDefaultImports": true
+  },
+  "exclude": [
+    "node_modules"
+  ]
 }

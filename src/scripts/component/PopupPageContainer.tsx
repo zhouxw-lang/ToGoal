@@ -184,12 +184,15 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
         let trackingPeriodStart: Date;
         let trackingPeriodEnd: Date;
         if (this.state.trackingPeriodType === 'weekly') {
-            const options = await loadOptions();
-            if (!options.hasOwnProperty(FIRST_DAY_OF_WEEK_KEY)) {
-                throw new Error('API Token or workspace ID is empty. Please set them in options.');
+            let firstDayOfWeek;
+            try {
+                const options = await loadOptions();
+                firstDayOfWeek = options.hasOwnProperty(FIRST_DAY_OF_WEEK_KEY) ? options[FIRST_DAY_OF_WEEK_KEY] : '0';
+            } catch (e) {
+                firstDayOfWeek = '0';
             }
 
-            [trackingPeriodStart, trackingPeriodEnd] = getWeeklySinceUntilDates(options[FIRST_DAY_OF_WEEK_KEY]);
+            [trackingPeriodStart, trackingPeriodEnd] = getWeeklySinceUntilDates(firstDayOfWeek);
         } else if (this.state.trackingPeriodType === 'monthly') {
             [trackingPeriodStart, trackingPeriodEnd] = getMonthlySinceUntilDates();
         } else if (this.state.trackingPeriodType === 'daily') {
@@ -223,8 +226,8 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
     };
 
     async componentDidMount(): Promise<void> {
-        await this.setStateCustomizations();
         await this.setStateTrackingPeriodDates();
+        await this.setStateCustomizations();
 
         await this.updateProjectStatusesView();
         await this.handleUpdateRecordedTimes(true);

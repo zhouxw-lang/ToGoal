@@ -12,7 +12,7 @@ export interface TableSortRow {
 
 export type TableSortRowKey = keyof TableSortRow;
 
-export type TrackingPeriodType = 'weekly' | 'custom';
+export type TrackingPeriodType = 'daily' | 'weekly' | 'monthly' | 'custom';
 
 export interface Options {
     [API_TOKEN_KEY]: string;

@@ -10,7 +10,7 @@ import {
 } from '../types';
 import { retrieveProjects, retrieveRecordedTimes } from '../togglTrackApi';
 import PopupPage from './PopupPage';
-import { getWeeklySinceUntilDates } from '../utils';
+import { getMonthlySinceUntilDates, getWeeklySinceUntilDates } from '../utils';
 import { FIRST_DAY_OF_WEEK_KEY, loadOptions } from '../storage';
 
 interface State extends Customizations {
@@ -168,6 +168,12 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
             }
 
             [trackingPeriodStart, trackingPeriodEnd] = getWeeklySinceUntilDates(options[FIRST_DAY_OF_WEEK_KEY]);
+        } else if (this.state.trackingPeriodType === 'monthly') {
+            [trackingPeriodStart, trackingPeriodEnd] = getMonthlySinceUntilDates();
+        } else if (this.state.trackingPeriodType === 'daily') {
+            const today = new Date();
+            trackingPeriodStart = today;
+            trackingPeriodEnd = today;
         } else {
             // TODO
             trackingPeriodStart = new Date();

@@ -1,0 +1,26 @@
+.togoal-Container {
+    max-width: 960px;
+    padding: 16px;
+
+    .togoal-MenuButtonContainer {
+        margin-bottom: 8px;
+
+        .togoal-MenuButton {
+            margin-right: 8px;
+        }
+    }
+
+    .togoal-AlertBar {
+        margin-bottom: 8px;
+    }
+
+    .togoal-ProjectStatusesView {
+        .togoal-GoalInput {
+            width: 50px;
+        }
+
+        .togoal-ProjectStatusesView-cell {
+            padding: 4px;
+        }
+    }
+}

@@ -1,0 +1,42 @@
+{
+  "plugins": [
+    "react",
+    "@typescript-eslint"
+  ],
+  "env": {
+    "browser": true,
+    "es2017": true,
+    "node": true
+  },
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "sourceType": "module",
+    "ecmaVersion": 2019,
+    "ecmaFeatures": {
+      "jsx": true
+    },
+    "project": "./tsconfig.json"
+  },
+  "extends": [
+    "plugin:react/recommended",
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/recommended-requiring-type-checking",
+    "plugin:prettier/recommended"
+  ],
+  "rules": {
+    "@typescript-eslint/ban-ts-comment": "off",
+    "no-prototype-builtins": "off",
+    "@typescript-eslint/restrict-template-expressions": "off",
+    "prettier/prettier": [
+      "error",
+      {
+        "singleQuote": true,
+        "semi": true,
+        "tabWidth": 4,
+        "printWidth": 120,
+        "endOfLine":"auto"
+      }
+    ]
+  }
+}

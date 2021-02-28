@@ -57,7 +57,7 @@ export async function retrieveRecordedTimes(): Promise<ProjectSingleFieldStatuse
     let response;
     try {
         response = await fetch(
-            `https://toggl.com/reports/api/v2/weekly?user_agent=toggl_goal&workspace_id=${options[WORKSPACE_ID_KEY]}&since=${sinceDateStr}`,
+            `https://api.track.toggl.com/reports/api/v2/weekly?user_agent=ToGoal&workspace_id=${options[WORKSPACE_ID_KEY]}&since=${sinceDateStr}`,
             {
                 method: 'GET',
                 headers: {

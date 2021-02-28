@@ -105,6 +105,21 @@ export default class OptionsPage extends React.Component<Readonly<Record<string,
                 </Button>
                 <p />
                 {this.state.msgVisible && <Alert severity="success">Options saved.</Alert>}
+
+                <h4>References:</h4>
+                <h5>How to find API Token</h5>
+                <a target="_blank" href="https://support.toggl.com/en/articles/3116844-where-is-my-api-token-located">
+                    Where is my API Token located?
+                </a>
+                <h5>How to find workspace ID:</h5>
+                <p>
+                    Go to{' '}
+                    <a target="_blank" href="https://track.toggl.com/projects">
+                        Toggl Track Project list page
+                    </a>{' '}
+                    (log in if you have not), and look at the URL in the address bar. The integer in the URL is the
+                    workspace ID, e.g. <code>https://track.toggl.com/projects/&lt;workspace ID&gt;/list</code>
+                </p>
             </Container>
         );
     }

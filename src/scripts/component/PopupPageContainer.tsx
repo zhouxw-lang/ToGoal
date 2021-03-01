@@ -20,6 +20,7 @@ interface State extends Customizations {
     msgContent: string;
     trackingPeriodStart: Date;
     trackingPeriodEnd: Date;
+    optionsMissing: boolean;
 }
 
 class PopupPageContainer extends React.Component<Readonly<Record<string, never>>, State> {
@@ -37,6 +38,7 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
             trackingPeriodType: 'weekly',
             trackingPeriodStart: new Date(),
             trackingPeriodEnd: new Date(),
+            optionsMissing: false,
         } as State;
     }
 
@@ -226,6 +228,7 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
     };
 
     async componentDidMount(): Promise<void> {
+        await this.checkOptionsMissing();
         await this.setStateTrackingPeriodDates();
         await this.setStateCustomizations();
 
@@ -238,6 +241,16 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
         return new Promise((resolve) => {
             this.setState(customizations, () => resolve());
         });
+    };
+
+    private checkOptionsMissing = async (): Promise<void> => {
+        try {
+            await loadOptions();
+        } catch (e) {
+            return new Promise((resolve) => {
+                this.setState({ optionsMissing: true }, () => resolve());
+            });
+        }
     };
 
     render(): JSX.Element {
@@ -253,6 +266,7 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
                 trackingPeriodType={this.state.trackingPeriodType}
                 trackingPeriodStart={this.state.trackingPeriodStart}
                 trackingPeriodEnd={this.state.trackingPeriodEnd}
+                optionsMissing={this.state.optionsMissing}
                 handleUpdateRecordedTimes={() => this.handleUpdateRecordedTimes(false)}
                 handleGoalInputChange={this.handleGoalInputChange}
                 handleGoalInputBlur={this.handleGoalInputBlur}
@@ -261,6 +275,9 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
                 handleRequestSort={this.handleRequestSort}
                 handleOnlyShowPrjWithGoalsChange={this.handleOnlyShowPrjWithGoalsChange}
                 handleTrackingPeriodTypeChange={this.handleTrackingPeriodTypeChange}
+                handleClosingOptionsMissingAlert={() => {
+                    this.setState({ optionsMissing: false });
+                }}
             />
         );
     }

@@ -96,6 +96,7 @@ interface PopupPageProps {
     trackingPeriodType: TrackingPeriodType;
     trackingPeriodStart: Date;
     trackingPeriodEnd: Date;
+    optionsMissing: boolean;
     handleUpdateRecordedTimes: () => Promise<void>;
     handleGoalInputChange: (event: React.ChangeEvent<HTMLInputElement>, namePrefix: string) => void;
     handleGoalInputBlur: (event: React.ChangeEvent<HTMLInputElement>, namePrefix: string) => void;
@@ -104,6 +105,7 @@ interface PopupPageProps {
     handleRequestSort: (event: React.MouseEvent<unknown>, property: TableSortRowKey) => void;
     handleOnlyShowPrjWithGoalsChange: (event: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
     handleTrackingPeriodTypeChange: (event: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
+    handleClosingOptionsMissingAlert: () => void;
 }
 
 const GOAL_INPUT_PREFIX = 'goalinput-';
@@ -129,6 +131,7 @@ const PopupPage = ({
     trackingPeriodType,
     trackingPeriodStart,
     trackingPeriodEnd,
+    optionsMissing,
     handleUpdateRecordedTimes,
     handleGoalInputChange,
     handleGoalInputBlur,
@@ -137,6 +140,7 @@ const PopupPage = ({
     handleRequestSort,
     handleOnlyShowPrjWithGoalsChange,
     handleTrackingPeriodTypeChange,
+    handleClosingOptionsMissingAlert,
 }: PopupPageProps): JSX.Element => {
     const tableData: TableDataRow[] = Object.keys(projects)
         .map((projectName) => {
@@ -204,6 +208,20 @@ const PopupPage = ({
 
     return (
         <Container className="togoal-Container">
+            {optionsMissing && (
+                <Alert
+                    onClose={handleClosingOptionsMissingAlert}
+                    severity="info"
+                    variant="outlined"
+                    className="togoal-AlertBar"
+                >
+                    Please go to{' '}
+                    <a href={chrome.runtime.getURL('options.html')} target="_blank">
+                        options page
+                    </a>{' '}
+                    to configure ToGoal.
+                </Alert>
+            )}
             <div className="togoal-MenuButtonContainer">
                 <Button
                     variant="contained"

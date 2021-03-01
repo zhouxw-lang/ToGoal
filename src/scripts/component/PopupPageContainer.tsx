@@ -1,5 +1,6 @@
 import * as React from 'react';
 import * as Storage from '../storage';
+import * as dayjs from 'dayjs';
 import {
     Customizations,
     Order,
@@ -76,8 +77,8 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
     private innerUpdateRecordedTimes = async () => {
         const [recordedTimes, storedNames] = await Promise.all([
             retrieveRecordedTimes(
-                this.state.trackingPeriodStart.toISOString().slice(0, 10),
-                this.state.trackingPeriodEnd.toISOString().slice(0, 10)
+                dayjs(this.state.trackingPeriodStart).format('YYYY-MM-DD'),
+                dayjs(this.state.trackingPeriodEnd).format('YYYY-MM-DD')
             ),
             Storage.getProjectNames(),
         ]);

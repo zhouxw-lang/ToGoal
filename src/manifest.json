@@ -1,6 +1,6 @@
 {
   "name": "ToGoal",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "manifest_version": 2,
   "description": "ToGoal, a Chrome extension working together with Toggl Track for setting time-based goals and tracking progress",
   "options_page": "options.html",

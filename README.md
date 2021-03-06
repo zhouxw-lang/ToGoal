@@ -5,7 +5,7 @@ Set time-based goals like "2 hours of career development and 3 hours of planning
 
 Good for people who juggle several things in parallel in their time management.
 
-Supports weekly and monthly tracking periods and custom period is in development.
+Supports weekly, monthly and custom tracking periods.
 
 You can sort projects by any column like recorded time, progress, remaining time.
 

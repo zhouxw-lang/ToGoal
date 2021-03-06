@@ -1,4 +1,5 @@
 import * as dayjs from 'dayjs';
+import { Dayjs } from 'dayjs';
 
 export function getWeeklySinceUntilDates(firstDayOfWeek: string): [Date, Date] {
     const now = new Date();
@@ -12,4 +13,12 @@ export function getMonthlySinceUntilDates(): [Date, Date] {
     const sinceDate = dayjs().startOf('month').toDate();
     const untilDate = dayjs().endOf('month').toDate();
     return [sinceDate, untilDate];
+}
+
+export function formatDayjs(dt: Dayjs): string {
+    return dt.format('YYYY-MM-DD');
+}
+
+export function formatDate(date: Date): string {
+    return formatDayjs(dayjs(date));
 }

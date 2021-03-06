@@ -90,12 +90,15 @@ interface PopupPageProps {
     projectInputtedGoals: Record<string, string>;
     onlyShowPrjWithGoals: boolean;
     msgVisible: boolean;
+    msgType: 'success' | 'info' | 'warning' | 'error';
     msgContent: string;
     order: Order;
     orderBy: TableSortRowKey;
     trackingPeriodType: TrackingPeriodType;
     trackingPeriodStart: Date;
     trackingPeriodEnd: Date;
+    trackingPeriodStartCustomValue: string;
+    trackingPeriodEndCustomValue: string;
     optionsMissing: boolean;
     handleUpdateRecordedTimes: () => Promise<void>;
     handleGoalInputChange: (event: React.ChangeEvent<HTMLInputElement>, namePrefix: string) => void;
@@ -106,6 +109,8 @@ interface PopupPageProps {
     handleOnlyShowPrjWithGoalsChange: (event: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
     handleTrackingPeriodTypeChange: (event: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
     handleClosingOptionsMissingAlert: () => void;
+    handleTrackingPeriodStartCustomValueChange: (event: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
+    handleTrackingPeriodEndCustomValueChange: (event: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
 }
 
 const GOAL_INPUT_PREFIX = 'goalinput-';
@@ -125,12 +130,15 @@ const PopupPage = ({
     projectInputtedGoals,
     onlyShowPrjWithGoals,
     msgVisible,
+    msgType,
     msgContent,
     order,
     orderBy,
     trackingPeriodType,
     trackingPeriodStart,
     trackingPeriodEnd,
+    trackingPeriodStartCustomValue,
+    trackingPeriodEndCustomValue,
     optionsMissing,
     handleUpdateRecordedTimes,
     handleGoalInputChange,
@@ -141,6 +149,8 @@ const PopupPage = ({
     handleOnlyShowPrjWithGoalsChange,
     handleTrackingPeriodTypeChange,
     handleClosingOptionsMissingAlert,
+    handleTrackingPeriodStartCustomValueChange,
+    handleTrackingPeriodEndCustomValueChange,
 }: PopupPageProps): JSX.Element => {
     const tableData: TableDataRow[] = Object.keys(projects)
         .map((projectName) => {
@@ -256,7 +266,7 @@ const PopupPage = ({
                 </Button>
             </div>
             {msgVisible && (
-                <Alert severity="success" className="togoal-AlertBar">
+                <Alert severity={msgType} className="togoal-AlertBar">
                     {msgContent}
                 </Alert>
             )}
@@ -321,14 +331,36 @@ const PopupPage = ({
                     <FormControlLabel value="daily" control={<Radio color="primary" />} label="Daily" />
                     <FormControlLabel value="weekly" control={<Radio color="primary" />} label="Weekly" />
                     <FormControlLabel value="monthly" control={<Radio color="primary" />} label="Monthly" />
-                    <FormControlLabel
-                        value="custom"
-                        control={<Radio color="primary" />}
-                        label="Custom (to come)"
-                        disabled
-                    />
+                    <FormControlLabel value="custom" control={<Radio color="primary" />} label="Custom" />
                 </RadioGroup>
             </FormControl>
+
+            {trackingPeriodType === 'custom' && (
+                <div className="togoal-TrackingPeriodInputContainer">
+                    <label htmlFor="dateinput-trackingPeriodStart" className="togoal-TrackingPeriodInputLabel">
+                        Start date:{' '}
+                    </label>
+                    <input
+                        type="date"
+                        id="dateinput-trackingPeriodStart"
+                        className="togoal-TrackingPeriodInput"
+                        name="trackingPeriodStart"
+                        value={trackingPeriodStartCustomValue}
+                        onChange={handleTrackingPeriodStartCustomValueChange}
+                    />
+                    <label htmlFor="dateinput-trackingPeriodEnd" className="togoal-TrackingPeriodInputLabel">
+                        End date:{' '}
+                    </label>
+                    <input
+                        type="date"
+                        id="dateinput-trackingPeriodEnd"
+                        className="togoal-TrackingPeriodInput"
+                        name="trackingPeriodEnd"
+                        value={trackingPeriodEndCustomValue}
+                        onChange={handleTrackingPeriodEndCustomValueChange}
+                    />
+                </div>
+            )}
 
             <FormControlLabel
                 control={

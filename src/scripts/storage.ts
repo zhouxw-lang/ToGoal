@@ -18,6 +18,8 @@ const defaultCustomizations: Customizations = {
     order: 'asc',
     orderBy: 'project',
     trackingPeriodType: 'weekly',
+    trackingPeriodStartCustomValue: '',
+    trackingPeriodEndCustomValue: '',
 };
 
 const storage = chrome.storage.sync;

@@ -40,4 +40,6 @@ export interface Customizations {
     order: Order;
     orderBy: TableSortRowKey;
     trackingPeriodType: TrackingPeriodType;
+    trackingPeriodStartCustomValue: string;
+    trackingPeriodEndCustomValue: string;
 }

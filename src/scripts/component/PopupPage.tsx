@@ -1,4 +1,5 @@
 import * as React from 'react';
+import dayjs from 'dayjs';
 
 import { GOAL_KEY, RECORDED_TIME_KEY } from '../storage';
 import {
@@ -73,7 +74,7 @@ const headCells: TableColumn[] = [
     { id: 'project', label: 'Project', numeric: false },
     { id: 'goal', label: 'Goal (hours)', numeric: true },
     { id: 'recordedTime', label: 'Recorded time', numeric: true },
-    { id: 'progress', label: 'Progress (%)', numeric: true },
+    { id: 'progress', label: 'Progress', numeric: true },
     { id: 'remainingTime', label: 'Remaining time', numeric: true },
 ];
 
@@ -207,12 +208,26 @@ const PopupPage = ({
                 recordedTime,
                 displayRecordedTime: isNoRecordedTime ? '' : recordedTime.toFixed(2),
                 progress,
-                displayProgress: isNoGoalNorRecordedTime ? '' : progress.toFixed(0),
+                displayProgress: isNoGoalNorRecordedTime ? '' : `${progress.toFixed(0)}%`,
                 remainingTime,
                 displayRemainingTime: isNoGoalNorRecordedTime ? '' : remainingTime.toFixed(2),
             };
         })
         .filter((x) => x != null);
+
+    let trackingPeriodProgress: string = null;
+    if (dayjs(trackingPeriodEnd).isAfter(trackingPeriodStart)) {
+        const nowTime = new Date().getTime();
+        let progress =
+            (nowTime - trackingPeriodStart.getTime()) / (trackingPeriodEnd.getTime() - trackingPeriodStart.getTime());
+        if (progress < 0) {
+            progress = 0;
+        } else if (progress > 1) {
+            progress = 1;
+        }
+
+        trackingPeriodProgress = (progress * 100).toFixed(1);
+    }
 
     const sortingComparator = getComparator(order, orderBy);
 
@@ -272,7 +287,11 @@ const PopupPage = ({
             )}
 
             <div className="togoal-TrackingPeriod">
-                Trcking period: {trackingPeriodStart.toLocaleDateString()} ~ {trackingPeriodEnd.toLocaleDateString()}
+                <span>
+                    Tracking period: {trackingPeriodStart.toLocaleDateString()} ~{' '}
+                    {trackingPeriodEnd.toLocaleDateString()}
+                </span>
+                {trackingPeriodProgress !== null && <span> ({`${trackingPeriodProgress}%`} has passed)</span>}
             </div>
 
             <div className="togoal-ProjectStatusesView">

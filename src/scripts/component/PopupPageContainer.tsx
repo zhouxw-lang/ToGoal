@@ -1,5 +1,6 @@
 import * as React from 'react';
 import * as Storage from '../storage';
+import dayjs from 'dayjs';
 import {
     Customizations,
     Order,
@@ -10,9 +11,14 @@ import {
 } from '../types';
 import { retrieveProjects, retrieveRecordedTimes } from '../togglTrackApi';
 import PopupPage from './PopupPage';
-import { formatDate, getMonthlySinceUntilDates, getWeeklySinceUntilDates } from '../utils';
+import {
+    formatDate,
+    getMonthlySinceUntilDates,
+    getTodayBeginning,
+    getTodayEnd,
+    getWeeklySinceUntilDates,
+} from '../utils';
 import { FIRST_DAY_OF_WEEK_KEY, loadOptions } from '../storage';
-import dayjs from 'dayjs';
 
 interface State extends Customizations {
     projects: ProjectStatuses;
@@ -31,7 +37,8 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
     constructor(props: Readonly<Record<string, never>>) {
         super(props);
 
-        const now = new Date();
+        const todayBeginning = getTodayBeginning();
+        const todayEnd = getTodayEnd();
         this.state = {
             projects: {},
             projectInputtedGoals: {},
@@ -41,10 +48,10 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
             order: 'asc',
             orderBy: 'project',
             trackingPeriodType: 'weekly',
-            trackingPeriodStart: now,
-            trackingPeriodEnd: now,
-            trackingPeriodStartCustomValue: formatDate(now),
-            trackingPeriodEndCustomValue: formatDate(now),
+            trackingPeriodStart: todayBeginning,
+            trackingPeriodEnd: todayEnd,
+            trackingPeriodStartCustomValue: formatDate(todayBeginning),
+            trackingPeriodEndCustomValue: formatDate(todayEnd),
             optionsMissing: false,
         } as State;
     }
@@ -211,7 +218,6 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
     private updateTrackingPeriodDates = async (): Promise<void> => {
         let trackingPeriodStart: Date;
         let trackingPeriodEnd: Date;
-        const today = new Date();
         await this.hideMessage();
         if (this.state.trackingPeriodType === 'weekly') {
             let firstDayOfWeek;
@@ -226,16 +232,20 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
         } else if (this.state.trackingPeriodType === 'monthly') {
             [trackingPeriodStart, trackingPeriodEnd] = getMonthlySinceUntilDates();
         } else if (this.state.trackingPeriodType === 'daily') {
-            trackingPeriodStart = today;
-            trackingPeriodEnd = today;
+            trackingPeriodStart = getTodayBeginning();
+            trackingPeriodEnd = getTodayEnd();
         } else if (this.state.trackingPeriodType === 'custom') {
             trackingPeriodStart = new Date(this.state.trackingPeriodStartCustomValue);
             if (isNaN(trackingPeriodStart.getTime())) {
-                trackingPeriodStart = today;
+                trackingPeriodStart = getTodayBeginning();
+            } else {
+                trackingPeriodStart = dayjs(trackingPeriodStart).startOf('day').toDate();
             }
             trackingPeriodEnd = new Date(this.state.trackingPeriodEndCustomValue);
             if (isNaN(trackingPeriodEnd.getTime())) {
-                trackingPeriodEnd = today;
+                trackingPeriodEnd = getTodayEnd();
+            } else {
+                trackingPeriodEnd = dayjs(trackingPeriodEnd).endOf('day').toDate();
             }
 
             if (dayjs(trackingPeriodStart).isAfter(trackingPeriodEnd)) {
@@ -244,8 +254,8 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
                 await this.showWarningMessage('Invalid tracking period: longer than one year');
             }
         } else {
-            trackingPeriodStart = new Date();
-            trackingPeriodEnd = new Date();
+            trackingPeriodStart = getTodayBeginning();
+            trackingPeriodEnd = getTodayEnd();
         }
 
         await this.updateState({ trackingPeriodStart, trackingPeriodEnd });

@@ -166,13 +166,14 @@ export default class OptionsPage extends React.Component<Readonly<Record<string,
                             ))}
                     </Select>
                     <FormHelperText>
-                        Workspaces list is automatically updated when API Token is inputted{' '}
+                        Workspaces list will be automatically updated when API Token is inputted
+                        <br />
                         <a
                             href="javascript:void(0)"
                             onClick={this.manualUpdateWorkspaces}
                             style={{ textDecoration: 'none', color: 'blue' }}
                         >
-                            (Manually update)
+                            (Click here to manually update)
                         </a>
                     </FormHelperText>
                 </FormControl>

@@ -44,6 +44,7 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
             projectInputtedGoals: {},
             onlyShowPrjWithGoals: false,
             msgVisible: false,
+            msgType: 'success',
             msgContent: '',
             order: 'asc',
             orderBy: 'project',
@@ -53,7 +54,7 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
             trackingPeriodStartCustomValue: formatDate(todayBeginning),
             trackingPeriodEndCustomValue: formatDate(todayEnd),
             optionsMissing: false,
-        } as State;
+        };
     }
 
     private handleRequestSort = (event: React.MouseEvent<unknown>, property: TableSortRowKey) => {

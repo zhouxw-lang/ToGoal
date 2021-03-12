@@ -10,6 +10,7 @@ const OPTIONS_ROOT_KEY = 'options';
 export const API_TOKEN_KEY = 'apiToken';
 export const WORKSPACE_ID_KEY = 'workspaceId';
 export const FIRST_DAY_OF_WEEK_KEY = 'firstDayOfWeek';
+export const RETRIEVED_WORKSPACES_KEY = 'retrievedWorkspaces';
 
 const CUSTOMIZATIONS_ROOT_KEY = 'customizations';
 

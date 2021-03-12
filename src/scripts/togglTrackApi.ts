@@ -1,5 +1,35 @@
 import { API_TOKEN_KEY, FIRST_DAY_OF_WEEK_KEY, loadOptions, WORKSPACE_ID_KEY } from './storage';
-import { ProjectSingleFieldStatuses } from './types';
+import { ProjectSingleFieldStatuses, Workspace } from './types';
+
+export async function retrieveWorkspaces(apiToken: string): Promise<Workspace[]> {
+    let response;
+    try {
+        response = await fetch(`https://www.toggl.com/api/v8/workspaces`, {
+            method: 'GET',
+            headers: {
+                Authorization: 'Basic ' + btoa(`${apiToken}:api_token`),
+            },
+        });
+    } catch (e) {
+        throw new Error(`Failed to retrieve workspaces from server: ${e}`);
+    }
+
+    if (!response.ok) {
+        throw new Error(`Failed to retrieve workspaces, server response status: ${response.status}`);
+    }
+
+    const json = (await response.json()) as Array<Record<string, unknown>>;
+    if (!json) {
+        return [];
+    }
+    try {
+        return json.map(
+            (elem: { id: number; name: string }) => ({ id: elem.id.toString(), name: elem.name } as Workspace)
+        );
+    } catch (e) {
+        throw new Error(`Failed to parse workspaces: ${e}`);
+    }
+}
 
 export async function retrieveProjects(): Promise<string[]> {
     const options = await loadOptions();

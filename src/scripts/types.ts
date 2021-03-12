@@ -1,4 +1,11 @@
-import { API_TOKEN_KEY, FIRST_DAY_OF_WEEK_KEY, GOAL_KEY, RECORDED_TIME_KEY, WORKSPACE_ID_KEY } from './storage';
+import {
+    API_TOKEN_KEY,
+    FIRST_DAY_OF_WEEK_KEY,
+    GOAL_KEY,
+    RECORDED_TIME_KEY,
+    RETRIEVED_WORKSPACES_KEY,
+    WORKSPACE_ID_KEY,
+} from './storage';
 
 export type Order = 'asc' | 'desc';
 
@@ -18,6 +25,12 @@ export interface Options {
     [API_TOKEN_KEY]: string;
     [WORKSPACE_ID_KEY]: string;
     [FIRST_DAY_OF_WEEK_KEY]: string;
+    [RETRIEVED_WORKSPACES_KEY]: Workspace[];
+}
+
+export interface Workspace {
+    id: string;
+    name: string;
 }
 
 export interface ProjectStatus {

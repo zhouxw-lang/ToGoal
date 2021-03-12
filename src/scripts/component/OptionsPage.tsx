@@ -119,8 +119,12 @@ export default class OptionsPage extends React.Component<Readonly<Record<string,
         });
     };
 
-    componentDidMount(): void {
-        void this.restoreOptions();
+    async componentDidMount(): Promise<void> {
+        try {
+            await this.restoreOptions();
+        } catch (e) {
+            // ignore
+        }
     }
 
     render(): JSX.Element {
@@ -164,7 +168,7 @@ export default class OptionsPage extends React.Component<Readonly<Record<string,
                     <FormHelperText>
                         Workspaces list is automatically updated when API Token is inputted{' '}
                         <a
-                            href="#"
+                            href="javascript:void(0)"
                             onClick={this.manualUpdateWorkspaces}
                             style={{ textDecoration: 'none', color: 'blue' }}
                         >

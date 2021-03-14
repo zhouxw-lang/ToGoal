@@ -4,7 +4,7 @@ import { ProjectSingleFieldStatuses, Workspace } from './types';
 export async function retrieveWorkspaces(apiToken: string): Promise<Workspace[]> {
     let response;
     try {
-        response = await fetch(`https://www.toggl.com/api/v8/workspaces`, {
+        response = await fetch(`https://api.track.toggl.com/api/v8/workspaces`, {
             method: 'GET',
             headers: {
                 Authorization: 'Basic ' + btoa(`${apiToken}:api_token`),
@@ -39,7 +39,7 @@ export async function retrieveProjects(): Promise<string[]> {
 
     let response;
     try {
-        response = await fetch(`https://www.toggl.com/api/v8/workspaces/${options[WORKSPACE_ID_KEY]}/projects`, {
+        response = await fetch(`https://api.track.toggl.com/api/v8/workspaces/${options[WORKSPACE_ID_KEY]}/projects`, {
             method: 'GET',
             headers: {
                 Authorization: 'Basic ' + btoa(`${options[API_TOKEN_KEY]}:api_token`),

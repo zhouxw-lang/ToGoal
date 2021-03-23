@@ -35,6 +35,7 @@ const config: webpack.Configuration = {
     resolve: {
         extensions: ['.tsx', '.ts', '.js', '.json', '.css'],
     },
+    devtool: 'cheap-module-source-map',
     plugins: [
         new CleanWebpackPlugin(),
         new CopyWebpackPlugin({

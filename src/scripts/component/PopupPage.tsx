@@ -24,10 +24,18 @@ import SaveIcon from '@material-ui/icons/Save';
 import OpenInNewIcon from '@material-ui/icons/OpenInNew';
 import { Alert } from '@material-ui/lab';
 import TableSortLabel from '@material-ui/core/TableSortLabel';
-import { Order, ProjectStatuses, TableSortRow, TableSortRowKey, TrackingPeriodType } from '../types';
+import {
+    Order,
+    ProjectStatuses,
+    ProjectStatusForSingleTrackingPeriod,
+    TableSortRow,
+    TableSortRowKey,
+    TrackingPeriodType,
+} from '../types';
 import { withStyles, Theme, createStyles } from '@material-ui/core/styles';
 
 import '../../styles/PopupPage.scss';
+import { getProjectStatusForSingleTrackingPeriod } from '../utils';
 
 interface TableDisplayRow {
     displayGoal: JSX.Element;
@@ -88,7 +96,7 @@ const displayRowKeys = {
 
 interface PopupPageProps {
     projects: ProjectStatuses;
-    projectInputtedGoals: Record<string, string>;
+    lookupGoalInputValue: (projectName: string, projectObj: ProjectStatusForSingleTrackingPeriod) => string;
     onlyShowPrjWithGoals: boolean;
     msgVisible: boolean;
     msgType: 'success' | 'info' | 'warning' | 'error';
@@ -128,7 +136,7 @@ const StyledTableRow = withStyles((theme: Theme) =>
 
 const PopupPage = ({
     projects,
-    projectInputtedGoals,
+    lookupGoalInputValue,
     onlyShowPrjWithGoals,
     msgVisible,
     msgType,
@@ -155,7 +163,7 @@ const PopupPage = ({
 }: PopupPageProps): JSX.Element => {
     const tableData: TableDataRow[] = Object.keys(projects)
         .map((projectName) => {
-            const projectObj = projects[projectName];
+            const projectObj = getProjectStatusForSingleTrackingPeriod(projects, projectName, trackingPeriodType);
 
             const isNoGoal = isNaN(parseFloat(projectObj[GOAL_KEY]));
             if (onlyShowPrjWithGoals && isNoGoal) {
@@ -182,14 +190,7 @@ const PopupPage = ({
                 remainingTime = goal - recordedTime;
             }
 
-            let displayGoalValue;
-            if (projectInputtedGoals.hasOwnProperty(projectName)) {
-                displayGoalValue = projectInputtedGoals[projectName];
-            } else if (projectObj.hasOwnProperty(GOAL_KEY)) {
-                displayGoalValue = projectObj[GOAL_KEY];
-            } else {
-                displayGoalValue = '';
-            }
+            const displayGoalValue = lookupGoalInputValue(projectName, projectObj);
 
             return {
                 project: projectName,

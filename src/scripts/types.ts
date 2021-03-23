@@ -33,12 +33,19 @@ export interface Workspace {
     name: string;
 }
 
-export interface ProjectStatus {
-    [GOAL_KEY]?: string;
-    [RECORDED_TIME_KEY]?: string;
+export interface ProjectStatusForSingleTrackingPeriod {
+    [GOAL_KEY]?: string; // Existing in version <=2.0.0, might delete in the future (202103)
+    [RECORDED_TIME_KEY]?: string; // Existing in version <=2.0.0, might delete in the future (202103)
 }
 
-export type ProjectStatusKey = keyof ProjectStatus;
+export interface ProjectStatus extends ProjectStatusForSingleTrackingPeriod {
+    daily?: ProjectStatusForSingleTrackingPeriod; // new field from 2.1.0 (202103)
+    weekly?: ProjectStatusForSingleTrackingPeriod; // new field from 2.1.0 (202103)
+    monthly?: ProjectStatusForSingleTrackingPeriod; // new field from 2.1.0 (202103)
+    custom?: ProjectStatusForSingleTrackingPeriod; // new field from 2.1.0 (202103)
+}
+
+export type ProjectStatusKey = keyof ProjectStatusForSingleTrackingPeriod;
 
 export interface ProjectStatuses {
     [projectName: string]: ProjectStatus;

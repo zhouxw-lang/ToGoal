@@ -1,4 +1,11 @@
-import { Customizations, Options, ProjectSingleFieldStatuses, ProjectStatuses, ProjectStatusKey } from './types';
+import {
+    Customizations,
+    Options,
+    ProjectSingleFieldStatuses,
+    ProjectStatuses,
+    ProjectStatusKey,
+    TrackingPeriodType,
+} from './types';
 
 const MODEL_ROOT_KEY = 'toGoalModel';
 
@@ -114,31 +121,47 @@ export async function addProjects(
 }
 
 export async function updateProjectGoals(
-    projectGoals: ProjectSingleFieldStatuses /* map from project name to goal in hours */
+    projectGoals: ProjectSingleFieldStatuses /* map from project name to goal in hours */,
+    trackingPeriodType: TrackingPeriodType
 ): Promise<void> {
-    return innerUpdateProjects(projectGoals, GOAL_KEY);
+    return innerUpdateProjects(projectGoals, GOAL_KEY, trackingPeriodType);
 }
 
 export async function updateProjectRecordedTimes(
-    projectRecordedTimes: ProjectSingleFieldStatuses /* map from project name to recorded time in hours */
+    projectRecordedTimes: ProjectSingleFieldStatuses /* map from project name to recorded time in hours */,
+    trackingPeriodType: TrackingPeriodType
 ): Promise<void> {
-    return innerUpdateProjects(projectRecordedTimes, RECORDED_TIME_KEY);
+    return innerUpdateProjects(projectRecordedTimes, RECORDED_TIME_KEY, trackingPeriodType);
 }
 
 async function innerUpdateProjects(
     projectDataMap: ProjectSingleFieldStatuses,
-    fieldKey: ProjectStatusKey
+    fieldKey: ProjectStatusKey,
+    trackingPeriodType: TrackingPeriodType
 ): Promise<void> {
     return new Promise((resolve) => {
         storage.get(MODEL_ROOT_KEY, (rootKeyVal) => {
             const rootObj: ProjectStatuses =
                 rootKeyVal && rootKeyVal[MODEL_ROOT_KEY] ? (rootKeyVal[MODEL_ROOT_KEY] as ProjectStatuses) : {};
 
-            Object.keys(rootObj).forEach((projectName) => {
+            Object.entries(rootObj).forEach(([projectName, projectObj]) => {
+                if (!projectObj.hasOwnProperty(trackingPeriodType)) {
+                    // Copy fields existing in version <= 2.0.0 over
+                    projectObj[trackingPeriodType] = {};
+                    if (projectObj.hasOwnProperty(GOAL_KEY)) {
+                        projectObj[trackingPeriodType][GOAL_KEY] = projectObj[GOAL_KEY];
+                    }
+                    if (projectObj.hasOwnProperty(RECORDED_TIME_KEY)) {
+                        projectObj[trackingPeriodType][RECORDED_TIME_KEY] = projectObj[RECORDED_TIME_KEY];
+                    }
+                }
+
                 if (projectDataMap[projectName]) {
-                    rootObj[projectName][fieldKey] = projectDataMap[projectName];
+                    projectObj[fieldKey] = projectDataMap[projectName];
+                    projectObj[trackingPeriodType][fieldKey] = projectDataMap[projectName];
                 } else {
-                    rootObj[projectName][fieldKey] = '';
+                    projectObj[fieldKey] = '';
+                    projectObj[trackingPeriodType][fieldKey] = '';
                 }
             });
 

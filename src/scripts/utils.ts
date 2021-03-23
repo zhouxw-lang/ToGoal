@@ -1,5 +1,6 @@
 import * as dayjs from 'dayjs';
 import { Dayjs } from 'dayjs';
+import { ProjectStatus, ProjectStatuses, ProjectStatusForSingleTrackingPeriod, TrackingPeriodType } from './types';
 
 export function getWeeklySinceUntilDates(firstDayOfWeek: string): [Date, Date] {
     const now = new Date();
@@ -31,4 +32,17 @@ export function formatDayjs(dt: Dayjs): string {
 
 export function formatDate(date: Date): string {
     return formatDayjs(dayjs(date));
+}
+
+export function getProjectStatusForSingleTrackingPeriod(
+    projects: ProjectStatuses,
+    projectName: string,
+    trackingPeriodType: TrackingPeriodType
+): ProjectStatusForSingleTrackingPeriod {
+    const projectObj: ProjectStatus = projects[projectName]; // caller should ensure projectName exists
+    if (projectObj.hasOwnProperty(trackingPeriodType)) {
+        return projectObj[trackingPeriodType];
+    } else {
+        return projectObj;
+    }
 }

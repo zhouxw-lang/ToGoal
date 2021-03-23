@@ -6,6 +6,7 @@ import {
     Order,
     ProjectSingleFieldStatuses,
     ProjectStatuses,
+    ProjectStatusForSingleTrackingPeriod,
     TableSortRowKey,
     TrackingPeriodType,
 } from '../types';
@@ -14,15 +15,16 @@ import PopupPage from './PopupPage';
 import {
     formatDate,
     getMonthlySinceUntilDates,
+    getProjectStatusForSingleTrackingPeriod,
     getTodayBeginning,
     getTodayEnd,
     getWeeklySinceUntilDates,
 } from '../utils';
-import { FIRST_DAY_OF_WEEK_KEY, loadOptions } from '../storage';
+import { FIRST_DAY_OF_WEEK_KEY, GOAL_KEY, loadOptions } from '../storage';
 
 interface State extends Customizations {
     projects: ProjectStatuses;
-    projectInputtedGoals: Record<string, string>;
+    projectInputtedGoals: Record<string, string>; // temporary storage of inputted goals
     msgVisible: boolean;
     msgType: 'success' | 'info' | 'warning' | 'error';
     msgContent: string;
@@ -99,7 +101,7 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
                 projectRecordedTimes[projectName] = hours;
             }
         }
-        await Storage.updateProjectRecordedTimes(projectRecordedTimes);
+        await Storage.updateProjectRecordedTimes(projectRecordedTimes, this.state.trackingPeriodType);
     };
 
     private async innerUpdateProjects() {
@@ -119,19 +121,22 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
     }
 
     private handleSaveGoals = async (silent: boolean) => {
-        return await this.innerHandleSaveGoals(silent, this.state.projects);
-    };
-
-    private innerHandleSaveGoals = async (silent: boolean, projects: ProjectStatuses) => {
         try {
             const storedNames = await Storage.getProjectNames();
             const projectGoals: ProjectSingleFieldStatuses = {};
             storedNames.forEach((projectName) => {
-                const stateGoalValue = projects[projectName].goal;
+                const stateGoalValue = this.lookupGoalInputValue(
+                    projectName,
+                    getProjectStatusForSingleTrackingPeriod(
+                        this.state.projects,
+                        projectName,
+                        this.state.trackingPeriodType
+                    )
+                );
                 const goalFloat = parseFloat(stateGoalValue);
                 projectGoals[projectName] = isNaN(goalFloat) || goalFloat <= 0.0 ? '' : stateGoalValue;
             });
-            await Storage.updateProjectGoals(projectGoals);
+            await Storage.updateProjectGoals(projectGoals, this.state.trackingPeriodType);
             await this.updateProjectStatusesView();
             if (!silent) {
                 await this.showSuccessMessage('Goals saved!');
@@ -198,16 +203,8 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
     };
 
     private handleGoalInputBlur = async () => {
-        const projects = { ...this.state.projects };
-        const projectInputtedGoals = this.state.projectInputtedGoals;
-        Object.keys(projectInputtedGoals).forEach((projectName) => {
-            if (projects.hasOwnProperty(projectName)) {
-                projects[projectName].goal = projectInputtedGoals[projectName];
-            }
-        });
-
-        await this.innerHandleSaveGoals(true, projects);
-        await this.updateState({ projectInputtedGoals: {} });
+        await this.handleSaveGoals(true);
+        await this.updateState({ projectInputtedGoals: {} }); // clear temporary storage of inputted goals
     };
 
     private updateState = async <K extends keyof State>(newPartialState: Pick<State, K>): Promise<void> => {
@@ -282,15 +279,15 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
         await this.updateState({ msgVisible: false });
     };
 
-    async componentDidMount(): Promise<void> {
-        await this.checkOptionsMissing();
-        await this.setStateCustomizations();
-
-        await this.updateTrackingPeriodDates();
-
-        await this.updateProjectStatusesView();
-        await this.handleUpdateRecordedTimes(true);
-    }
+    private lookupGoalInputValue = (projectName: string, projectObj: ProjectStatusForSingleTrackingPeriod) => {
+        if (this.state.projectInputtedGoals.hasOwnProperty(projectName)) {
+            return this.state.projectInputtedGoals[projectName];
+        } else if (projectObj.hasOwnProperty(GOAL_KEY)) {
+            return projectObj[GOAL_KEY];
+        } else {
+            return '';
+        }
+    };
 
     private setStateCustomizations = async (): Promise<void> => {
         const customizations = await Storage.loadCustomizations();
@@ -305,11 +302,22 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
         }
     };
 
+    async componentDidMount(): Promise<void> {
+        await this.checkOptionsMissing();
+        await this.setStateCustomizations();
+
+        await this.updateTrackingPeriodDates();
+
+        await this.updateProjectStatusesView();
+
+        await this.handleUpdateRecordedTimes(true);
+    }
+
     render(): JSX.Element {
         return (
             <PopupPage
                 projects={this.state.projects}
-                projectInputtedGoals={this.state.projectInputtedGoals}
+                lookupGoalInputValue={this.lookupGoalInputValue}
                 onlyShowPrjWithGoals={this.state.onlyShowPrjWithGoals}
                 msgVisible={this.state.msgVisible}
                 msgType={this.state.msgType}

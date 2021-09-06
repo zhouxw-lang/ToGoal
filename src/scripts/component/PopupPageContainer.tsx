@@ -152,6 +152,10 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
         chrome.tabs.create({ url: chrome.runtime.getURL('popup.html') });
     };
 
+    private static handleOpenTogglTrack = () => {
+        chrome.tabs.create({ url: 'https://track.toggl.com/' });
+    };
+
     private handleOnlyShowPrjWithGoalsChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const newValue = event.target.checked;
         await this.updateState({ onlyShowPrjWithGoals: newValue });
@@ -335,6 +339,7 @@ class PopupPageContainer extends React.Component<Readonly<Record<string, never>>
                 handleGoalInputBlur={this.handleGoalInputBlur}
                 handleSaveGoals={() => this.handleSaveGoals(false)}
                 handleOpenInNewTab={PopupPageContainer.handleOpenInNewTab}
+                handleOpenTogglTrack={PopupPageContainer.handleOpenTogglTrack}
                 handleRequestSort={this.handleRequestSort}
                 handleOnlyShowPrjWithGoalsChange={this.handleOnlyShowPrjWithGoalsChange}
                 handleTrackingPeriodTypeChange={this.handleTrackingPeriodTypeChange}

@@ -114,6 +114,7 @@ interface PopupPageProps {
     handleGoalInputBlur: (event: React.ChangeEvent<HTMLInputElement>, namePrefix: string) => void;
     handleSaveGoals: () => Promise<void>;
     handleOpenInNewTab: () => void;
+    handleOpenTogglTrack: () => void;
     handleRequestSort: (event: React.MouseEvent<unknown>, property: TableSortRowKey) => void;
     handleOnlyShowPrjWithGoalsChange: (event: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
     handleTrackingPeriodTypeChange: (event: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
@@ -154,6 +155,7 @@ const PopupPage = ({
     handleGoalInputBlur,
     handleSaveGoals,
     handleOpenInNewTab,
+    handleOpenTogglTrack,
     handleRequestSort,
     handleOnlyShowPrjWithGoalsChange,
     handleTrackingPeriodTypeChange,
@@ -258,7 +260,7 @@ const PopupPage = ({
                     startIcon={<TimelapseIcon />}
                     className="togoal-MenuButton"
                 >
-                    Pull updates from Toggl Track
+                    Update from Toggl Track
                 </Button>
                 <Button
                     variant="contained"
@@ -278,7 +280,16 @@ const PopupPage = ({
                     startIcon={<OpenInNewIcon />}
                     className="togoal-MenuButton"
                 >
-                    Open in new tab
+                    New tab
+                </Button>
+                <Button
+                    color="primary"
+                    size="small"
+                    onClick={handleOpenTogglTrack}
+                    startIcon={<OpenInNewIcon />}
+                    className="togoal-MenuButton"
+                >
+                    Toggl Track
                 </Button>
             </div>
             {msgVisible && (
